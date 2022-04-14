@@ -1,8 +1,10 @@
 package render
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
 )
@@ -12,20 +14,30 @@ var functions = template.FuncMap{}
 
 // RenderTemplate renders templates using html/template
 func RenderTemplate(w http.ResponseWriter, tmpl string) {
-
-	_, err := RenderTemplateTest(w, tmpl)
+	tc, err := CreateTemplateCache() // btw making cache is not sufficient approach
 	if err != nil {
-		fmt.Println("error getting template cache:", err)
+		log.Fatal(err) // It stops the app in case of error
 	}
 
-	parsedTemplate, _ := template.ParseFiles("./templates/" + tmpl)
-	err = parsedTemplate.Execute(w, nil)
+	// we are adding ok varible to check if the file exists or not
+	t, ok := tc[tmpl]
+	if !ok {
+		log.Fatal(err)
+	}
+
+	// Buffer which will hold information
+	buf := new(bytes.Buffer)
+
+	_ = t.Execute(buf, nil) // gives the template, doesn't store anything to the file and put the content to the buffer
+
+	_, err = buf.WriteTo(w)
 	if err != nil {
-		fmt.Println("error parsing template:", err)
+		fmt.Println("error writing template to browser", err)
 	}
 }
 
-func RenderTemplateTest(w http.ResponseWriter, tmpl string) (map[string]*template.Template, error) {
+// CreateTemplateCache creates template cache as a map
+func CreateTemplateCache() (map[string]*template.Template, error) {
 
 	myCache := map[string]*template.Template{}
 

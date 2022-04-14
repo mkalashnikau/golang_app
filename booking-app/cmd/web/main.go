@@ -2,15 +2,27 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/mkalashnikau/golang_app/booking-app/pkg/config"
 	"github.com/mkalashnikau/golang_app/booking-app/pkg/handlers"
-	//"github.com/mkalashnikau/golang_udemy/building-web-app/4-reorganize-code/pkg/handlers"
+	"github.com/mkalashnikau/golang_app/booking-app/pkg/render"
 )
 
 const portNumber = ":8080"
 
 func main() {
+	var app config.AppConfig
+
+	tc, err := render.CreateTemplateCache()
+	if err != nil {
+		log.Fatal("cannot create template cache")
+	}
+
+	// we write the template cache to the app variable
+	app.TemplateCache = tc
+
 	http.HandleFunc("/", handlers.Home)
 	http.HandleFunc("/about", handlers.About)
 
