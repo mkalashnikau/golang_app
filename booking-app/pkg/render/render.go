@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/mkalashnikau/golang_app/booking-app/pkg/config"
+	"github.com/mkalashnikau/golang_app/booking-app/pkg/models"
 )
 
 // FuncMap is a map of functions that we can use in a template
@@ -21,8 +22,12 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+	return td
+}
+
 // RenderTemplate renders templates using html/template
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 
 	var tc map[string]*template.Template
 
@@ -39,10 +44,12 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 		log.Fatal("couldn't get template from template cache")
 	}
 
+	td = AddDefaultData(td)
+
 	// Buffer which will hold information
 	buf := new(bytes.Buffer)
 
-	_ = t.Execute(buf, nil) // gives the template, doesn't store anything to the file and put the content to the buffer
+	_ = t.Execute(buf, td) // _ = t.Execute(buf, nil) - gives the template, doesn't store anything to the file and put the content to the buffer
 
 	_, err := buf.WriteTo(w)
 	if err != nil {
@@ -55,7 +62,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 
 	myCache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob("./templates/*.page.html")
+	pages, err := filepath.Glob("./templates/*.page.tmpl")
 	if err != nil {
 		return myCache, err
 	}
@@ -69,13 +76,13 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		}
 
 		// Define if we need to process the template or leave as is
-		matches, err := filepath.Glob("./templates/*.layout.html")
+		matches, err := filepath.Glob("./templates/*.layout.tmpl")
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout.html")
+			ts, err = ts.ParseGlob("./templates/*.layout.tmpl")
 			if err != nil {
 				return myCache, err
 			}
