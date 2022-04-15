@@ -7,22 +7,36 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+
+	"github.com/mkalashnikau/golang_app/booking-app/pkg/config"
 )
 
 // FuncMap is a map of functions that we can use in a template
 var functions = template.FuncMap{}
 
+var app *config.AppConfig
+
+// NewTemplates sets the config for the template package
+func NewTemplates(a *config.AppConfig) {
+	app = a
+}
+
 // RenderTemplate renders templates using html/template
 func RenderTemplate(w http.ResponseWriter, tmpl string) {
-	tc, err := CreateTemplateCache() // btw making cache is not sufficient approach
-	if err != nil {
-		log.Fatal(err) // It stops the app in case of error
+
+	var tc map[string]*template.Template
+
+	if app.UseCache {
+		// get the template cache from the app config
+		tc = app.TemplateCache
+	} else {
+		tc, _ = CreateTemplateCache() // if app.UseCache = false, the cache will be generated per each request (the page will be refreshed)
 	}
 
 	// we are adding ok varible to check if the file exists or not
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("couldn't get template from template cache")
 	}
 
 	// Buffer which will hold information
@@ -30,7 +44,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 
 	_ = t.Execute(buf, nil) // gives the template, doesn't store anything to the file and put the content to the buffer
 
-	_, err = buf.WriteTo(w)
+	_, err := buf.WriteTo(w)
 	if err != nil {
 		fmt.Println("error writing template to browser", err)
 	}
