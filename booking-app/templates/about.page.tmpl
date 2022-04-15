@@ -1,4 +1,5 @@
-{{template "base"}}
+<!-- dot sign '.' here is the scope of the 'base' template-->
+{{template "base" .}}
 
 {{define "content"}}
     <div class="container">
@@ -7,6 +8,7 @@
                 <h1>This is the about page</h1>
                 <p>This is some text</p>
 
+                <!-- calls value of StringMap["test"] -->
                 <p>This came from the template: {{index .StringMap "test"}}</p>
             </div>
         </div>
