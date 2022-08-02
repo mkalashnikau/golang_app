@@ -22,6 +22,7 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
+// Data that will be accessed on all pages
 func AddDefaultData(td *models.TemplateData) *models.TemplateData {
 	return td
 }
